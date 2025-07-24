@@ -1,0 +1,547 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Firebase Notification API",
+    "description": "REST API untuk mengirimkan notifikasi push menggunakan Firebase Cloud Messaging",
+    "version": "1.0.0",
+    "contact": {
+      "name": "API Support",
+      "email": "support@example.com"
+    }
+  },
+  "servers": [
+    {
+      "url": "http://localhost:3000/api/notifications",
+      "description": "Development server"
+    }
+  ],
+  "paths": {
+    "/health": {
+      "get": {
+        "summary": "Health check endpoint",
+        "description": "Mengecek status API",
+        "responses": {
+          "200": {
+            "description": "API berjalan normal",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/send-to-device": {
+      "post": {
+        "summary": "Kirim notifikasi ke satu perangkat",
+        "description": "Mengirim notifikasi push ke satu perangkat menggunakan FCM token",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SendToDeviceRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Notifikasi berhasil dikirim",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SendToDeviceResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request - validation error atau FCM token invalid",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "FCM token tidak terdaftar",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/send-to-multiple-devices": {
+      "post": {
+        "summary": "Kirim notifikasi ke beberapa perangkat",
+        "description": "Mengirim notifikasi push ke beberapa perangkat sekaligus",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SendToMultipleDevicesRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Notifikasi berhasil dikirim",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SendToMultipleDevicesResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/send-to-topic": {
+      "post": {
+        "summary": "Kirim notifikasi ke topic",
+        "description": "Mengirim notifikasi push ke semua perangkat yang subscribe ke topic tertentu",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SendToTopicRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Notifikasi berhasil dikirim ke topic",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SendToTopicResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/subscribe-to-topic": {
+      "post": {
+        "summary": "Subscribe ke topic",
+        "description": "Subscribe satu atau beberapa FCM token ke topic",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TopicSubscriptionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Berhasil subscribe ke topic",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TopicSubscriptionResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/unsubscribe-from-topic": {
+      "post": {
+        "summary": "Unsubscribe dari topic",
+        "description": "Unsubscribe satu atau beberapa FCM token dari topic",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TopicSubscriptionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Berhasil unsubscribe dari topic",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TopicSubscriptionResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Notification": {
+        "type": "object",
+        "required": ["title", "body"],
+        "properties": {
+          "title": {
+            "type": "string",
+            "maxLength": 100,
+            "description": "Judul notifikasi",
+            "example": "Notifikasi Penting"
+          },
+          "body": {
+            "type": "string",
+            "maxLength": 250,
+            "description": "Isi pesan notifikasi",
+            "example": "Ini adalah pesan notifikasi untuk Anda"
+          },
+          "imageUrl": {
+            "type": "string",
+            "format": "uri",
+            "description": "URL gambar notifikasi (opsional)",
+            "example": "https://example.com/image.jpg"
+          }
+        }
+      },
+      "SendToDeviceRequest": {
+        "type": "object",
+        "required": ["token", "notification"],
+        "properties": {
+          "token": {
+            "type": "string",
+            "description": "FCM token perangkat target",
+            "example": "dGVzdF90b2tlbl9oZXJl..."
+          },
+          "notification": {
+            "$ref": "#/components/schemas/Notification"
+          },
+          "data": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Data tambahan (opsional)",
+            "example": {
+              "key1": "value1",
+              "key2": "value2"
+            }
+          }
+        }
+      },
+      "SendToMultipleDevicesRequest": {
+        "type": "object",
+        "required": ["tokens", "notification"],
+        "properties": {
+          "tokens": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "minItems": 1,
+            "maxItems": 500,
+            "description": "Array FCM tokens (maksimal 500)",
+            "example": ["token1", "token2", "token3"]
+          },
+          "notification": {
+            "$ref": "#/components/schemas/Notification"
+          },
+          "data": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Data tambahan (opsional)"
+          }
+        }
+      },
+      "SendToTopicRequest": {
+        "type": "object",
+        "required": ["topic", "notification"],
+        "properties": {
+          "topic": {
+            "type": "string",
+            "pattern": "^[a-zA-Z0-9-_.~%]+$",
+            "description": "Nama topic",
+            "example": "news"
+          },
+          "notification": {
+            "$ref": "#/components/schemas/Notification"
+          },
+          "data": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Data tambahan (opsional)"
+          }
+        }
+      },
+      "TopicSubscriptionRequest": {
+        "type": "object",
+        "required": ["tokens", "topic"],
+        "properties": {
+          "tokens": {
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "minItems": 1,
+                "maxItems": 1000
+              }
+            ],
+            "description": "FCM token atau array tokens",
+            "example": ["token1", "token2"]
+          },
+          "topic": {
+            "type": "string",
+            "pattern": "^[a-zA-Z0-9-_.~%]+$",
+            "description": "Nama topic",
+            "example": "news"
+          }
+        }
+      },
+      "HealthResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "example": true
+          },
+          "message": {
+            "type": "string",
+            "example": "Firebase Notification API is running"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2024-01-01T00:00:00.000Z"
+          },
+          "version": {
+            "type": "string",
+            "example": "1.0.0"
+          }
+        }
+      },
+      "SendToDeviceResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "example": true
+          },
+          "message": {
+            "type": "string",
+            "example": "Notifikasi berhasil dikirim"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "messageId": {
+                "type": "string",
+                "example": "projects/myproject/messages/2905..."
+              },
+              "sentAt": {
+                "type": "string",
+                "format": "date-time",
+                "example": "2024-01-01T00:00:00.000Z"
+              }
+            }
+          }
+        }
+      },
+      "SendToMultipleDevicesResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "example": true
+          },
+          "message": {
+            "type": "string",
+            "example": "Notifikasi berhasil dikirim ke beberapa perangkat"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "successCount": {
+                "type": "integer",
+                "example": 2
+              },
+              "failureCount": {
+                "type": "integer",
+                "example": 1
+              },
+              "responses": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "token": {
+                      "type": "string"
+                    },
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "messageId": {
+                      "type": "string"
+                    },
+                    "error": {
+                      "type": "object"
+                    }
+                  }
+                }
+              },
+              "sentAt": {
+                "type": "string",
+                "format": "date-time"
+              }
+            }
+          }
+        }
+      },
+      "SendToTopicResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "example": true
+          },
+          "message": {
+            "type": "string",
+            "example": "Notifikasi berhasil dikirim ke topic: news"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "messageId": {
+                "type": "string"
+              },
+              "topic": {
+                "type": "string"
+              },
+              "sentAt": {
+                "type": "string",
+                "format": "date-time"
+              }
+            }
+          }
+        }
+      },
+      "TopicSubscriptionResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "example": true
+          },
+          "message": {
+            "type": "string",
+            "example": "Berhasil subscribe ke topic: news"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "successCount": {
+                "type": "integer"
+              },
+              "failureCount": {
+                "type": "integer"
+              },
+              "topic": {
+                "type": "string"
+              },
+              "subscribedAt": {
+                "type": "string",
+                "format": "date-time"
+              }
+            }
+          }
+        }
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "example": false
+          },
+          "message": {
+            "type": "string",
+            "example": "Error message"
+          },
+          "errors": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "field": {
+                  "type": "string"
+                },
+                "message": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "code": {
+            "type": "string",
+            "description": "Error code untuk Firebase errors"
+          }
+        }
+      }
+    }
+  }
+}

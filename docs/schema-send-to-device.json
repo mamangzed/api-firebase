@@ -1,0 +1,40 @@
+{
+  "type": "object",
+  "required": ["token", "notification"],
+  "properties": {
+    "token": {
+      "type": "string",
+      "description": "FCM token perangkat target"
+    },
+    "notification": {
+      "type": "object",
+      "required": ["title", "body"],
+      "properties": {
+        "title": {
+          "type": "string",
+          "maxLength": 100,
+          "description": "Judul notifikasi (maksimal 100 karakter)"
+        },
+        "body": {
+          "type": "string", 
+          "maxLength": 250,
+          "description": "Isi pesan notifikasi (maksimal 250 karakter)"
+        },
+        "imageUrl": {
+          "type": "string",
+          "format": "uri",
+          "description": "URL gambar untuk notifikasi (opsional)"
+        }
+      }
+    },
+    "data": {
+      "type": "object",
+      "patternProperties": {
+        "^.*$": {
+          "type": "string"
+        }
+      },
+      "description": "Data tambahan dalam format key-value string (opsional)"
+    }
+  }
+}
