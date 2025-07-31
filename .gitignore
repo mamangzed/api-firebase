@@ -6,3 +6,4 @@ firebase-service-account.json
 dist/
 build/
 account.json
+accounts.json
