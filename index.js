@@ -15,6 +15,9 @@ const {
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Trust proxy - important for rate limiting and IP detection
+app.set('trust proxy', true);
+
 // Security middleware
 app.use(helmet());
 

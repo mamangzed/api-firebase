@@ -12,6 +12,19 @@ const createRateLimit = (windowMs, max, message) => {
         },
         standardHeaders: true,
         legacyHeaders: false,
+        // Skip successful requests to prevent false positives
+        skipSuccessfulRequests: false,
+        // Skip failed requests
+        skipFailedRequests: false,
+        // Key generator based on API key or IP
+        keyGenerator: (req) => {
+            // Use API key if available, otherwise use IP
+            const apiKey = req.headers['x-api-key'];
+            if (apiKey) {
+                return `api_key:${apiKey}`;
+            }
+            return req.ip;
+        }
     });
 };
 

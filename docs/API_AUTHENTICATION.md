@@ -39,6 +39,13 @@ X-API-Key: your-secret-api-key
 ## Rate Limiting
 - 100 requests per 15 menit per API key
 - Rate limit berdasarkan API key, bukan IP
+- Aplikasi dikonfigurasi untuk bekerja di belakang proxy dengan `trust proxy` enabled
+
+## Proxy Configuration
+Aplikasi ini dikonfigurasi untuk bekerja di belakang reverse proxy atau load balancer:
+- Express `trust proxy` setting diaktifkan
+- Rate limiting menggunakan API key sebagai identifier utama
+- IP detection bekerja dengan header X-Forwarded-For
 
 ## Domain Restriction
 Hanya domain yang terdaftar dalam `ALLOWED_DOMAINS` yang dapat mengakses fully protected endpoints.
@@ -47,7 +54,7 @@ Hanya domain yang terdaftar dalam `ALLOWED_DOMAINS` yang dapat mengakses fully p
 
 ### JavaScript (Frontend)
 ```javascript
-const apiKey = 'your-secret-api-key';
+const apiKey = 'mamangzed123'; // Gunakan API key yang valid
 
 // Kirim pesan WhatsApp
 const response = await fetch('/api/whatsapp/send-message', {
@@ -184,3 +191,8 @@ ALLOWED_DOMAIN_3=http://localhost:3000
 - Tunggu 15 menit atau gunakan API key lain
 - Implementasi retry dengan delay
 - Optimasi frekuensi request
+
+### "X-Forwarded-For header error"
+- Aplikasi sudah dikonfigurasi dengan `trust proxy: true`
+- Error ini seharusnya tidak muncul lagi setelah update
+- Jika masih muncul, pastikan proxy configuration benar
