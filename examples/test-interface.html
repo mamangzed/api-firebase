@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Test Interface</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input, textarea, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .response {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            border: 1px solid #dee2e6;
+            margin: 10px 0;
+            font-family: 'Courier New', monospace;
+            white-space: pre-wrap;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid #ddd;
+            margin-bottom: 20px;
+        }
+        .tab {
+            padding: 10px 20px;
+            background: #f8f9fa;
+            border: none;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+        }
+        .tab.active {
+            background: white;
+            border-bottom-color: #007bff;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .qr-image {
+            max-width: 300px;
+            margin: 10px 0;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Firebase + WhatsApp API Test Interface</h1>
+    
+    <!-- API Key Configuration -->
+    <div class="container">
+        <h2>API Configuration</h2>
+        <div class="form-group">
+            <label for="apiKey">API Key:</label>
+            <input type="password" id="apiKey" placeholder="Enter your API key">
+        </div>
+        <div class="form-group">
+            <label for="baseUrl">Base URL:</label>
+            <input type="text" id="baseUrl" value="http://localhost:3000/api">
+        </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tabs">
+        <button class="tab active" onclick="switchTab('whatsapp')">WhatsApp</button>
+        <button class="tab" onclick="switchTab('broadcast')">Broadcast</button>
+        <button class="tab" onclick="switchTab('fcm')">FCM</button>
+        <button class="tab" onclick="switchTab('dual')">Dual Message</button>
+        <button class="tab" onclick="switchTab('status')">Status</button>
+    </div>
+
+    <!-- WhatsApp Tab -->
+    <div id="whatsapp" class="tab-content active">
+        <div class="grid">
+            <div class="container">
+                <h3>WhatsApp Setup</h3>
+                <button onclick="initializeWhatsApp()">Initialize WhatsApp</button>
+                <button onclick="getWhatsAppStatus()">Get Status</button>
+                <button onclick="reconnectWhatsApp()">Reconnect</button>
+                <button onclick="getQRCode()">Get QR Code</button>
+                <button onclick="getQRImage()">Get QR Image</button>
+                
+                <div id="qrContainer"></div>
+            </div>
+            
+            <div class="container">
+                <h3>Send WhatsApp Message</h3>
+                <div class="form-group">
+                    <label for="waPhone">Phone Number:</label>
+                    <input type="text" id="waPhone" placeholder="081234567890">
+                </div>
+                <div class="form-group">
+                    <label for="waMessage">Message:</label>
+                    <textarea id="waMessage" rows="3" placeholder="Enter your message"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="waImageUrl">Image URL (optional):</label>
+                    <input type="url" id="waImageUrl" placeholder="https://example.com/image.jpg">
+                </div>
+                <div class="form-group">
+                    <label for="waCaption">Caption (for image):</label>
+                    <input type="text" id="waCaption" placeholder="Image caption">
+                </div>
+                <div class="form-group">
+                    <label for="waImageFile">Or Upload Image:</label>
+                    <input type="file" id="waImageFile" accept="image/*">
+                </div>
+                <button onclick="sendWhatsAppMessage()">Send Message</button>
+                <button onclick="sendWhatsAppImage()">Send Image File</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Broadcast Tab -->
+    <div id="broadcast" class="tab-content">
+        <div class="grid">
+            <div class="container">
+                <h3>Bulk Messaging (Individual Messages)</h3>
+                <div class="form-group">
+                    <label for="bulkPhones">Phone Numbers (one per line):</label>
+                    <textarea id="bulkPhones" rows="5" placeholder="081234567890
+081234567891
+081234567892"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="bulkMessage">Message:</label>
+                    <textarea id="bulkMessage" rows="3" placeholder="Your bulk message here"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="bulkImageUrl">Image URL (optional):</label>
+                    <input type="url" id="bulkImageUrl" placeholder="https://example.com/image.jpg">
+                </div>
+                <div class="form-group">
+                    <label for="bulkCaption">Caption (for image):</label>
+                    <input type="text" id="bulkCaption" placeholder="Image caption">
+                </div>
+                <button onclick="sendBulkMessages()">Send Bulk Text</button>
+                <button onclick="sendBulkImageMessages()">Send Bulk Image</button>
+            </div>
+            
+            <div class="container">
+                <h3>Broadcast List Management</h3>
+                <div class="form-group">
+                    <label for="broadcastName">Broadcast List Name:</label>
+                    <input type="text" id="broadcastName" placeholder="My Broadcast List">
+                </div>
+                <div class="form-group">
+                    <label for="broadcastRecipients">Recipients (one per line):</label>
+                    <textarea id="broadcastRecipients" rows="5" placeholder="081234567890
+081234567891
+081234567892"></textarea>
+                </div>
+                <button onclick="createBroadcastList()">Create Broadcast List</button>
+                <button onclick="getBroadcastLists()">Get All Lists</button>
+                
+                <div id="broadcastListsContainer"></div>
+            </div>
+        </div>
+        
+        <div class="grid">
+            <div class="container">
+                <h3>Send to Broadcast List</h3>
+                <div class="form-group">
+                    <label for="broadcastId">Broadcast List ID:</label>
+                    <input type="text" id="broadcastId" placeholder="broadcast-list-id">
+                </div>
+                <div class="form-group">
+                    <label for="broadcastMessage">Message:</label>
+                    <textarea id="broadcastMessage" rows="3" placeholder="Your broadcast message"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="broadcastImageUrl">Image URL (optional):</label>
+                    <input type="url" id="broadcastImageUrl" placeholder="https://example.com/image.jpg">
+                </div>
+                <div class="form-group">
+                    <label for="broadcastImageCaption">Caption (for image):</label>
+                    <input type="text" id="broadcastImageCaption" placeholder="Image caption">
+                </div>
+                <button onclick="sendToBroadcastList()">Send Text</button>
+                <button onclick="sendImageToBroadcastList()">Send Image</button>
+            </div>
+            
+            <div class="container">
+                <h3>Manage Participants</h3>
+                <div class="form-group">
+                    <label for="manageBroadcastId">Broadcast List ID:</label>
+                    <input type="text" id="manageBroadcastId" placeholder="broadcast-list-id">
+                </div>
+                <div class="form-group">
+                    <label for="participantAction">Action:</label>
+                    <select id="participantAction">
+                        <option value="add">Add Participants</option>
+                        <option value="remove">Remove Participants</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="participants">Phone Numbers (one per line):</label>
+                    <textarea id="participants" rows="3" placeholder="081234567890
+081234567891"></textarea>
+                </div>
+                <button onclick="updateBroadcastListParticipants()">Update Participants</button>
+                <button onclick="deleteBroadcastList()">Delete Broadcast List</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- FCM Tab -->
+    <div id="fcm" class="tab-content">
+        <div class="grid">
+            <div class="container">
+                <h3>Single Device Notification</h3>
+                <div class="form-group">
+                    <label for="fcmToken">FCM Token:</label>
+                    <input type="text" id="fcmToken" placeholder="Enter FCM token">
+                </div>
+                <div class="form-group">
+                    <label for="fcmTitle">Title:</label>
+                    <input type="text" id="fcmTitle" placeholder="Notification title">
+                </div>
+                <div class="form-group">
+                    <label for="fcmBody">Body:</label>
+                    <textarea id="fcmBody" rows="3" placeholder="Notification body"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="fcmData">Data (JSON):</label>
+                    <textarea id="fcmData" rows="3" placeholder='{"key": "value"}'></textarea>
+                </div>
+                <button onclick="sendFCMToDevice()">Send to Device</button>
+            </div>
+            
+            <div class="container">
+                <h3>Topic Notification</h3>
+                <div class="form-group">
+                    <label for="fcmTopic">Topic:</label>
+                    <input type="text" id="fcmTopic" placeholder="news, updates, etc.">
+                </div>
+                <div class="form-group">
+                    <label for="fcmTopicTitle">Title:</label>
+                    <input type="text" id="fcmTopicTitle" placeholder="Notification title">
+                </div>
+                <div class="form-group">
+                    <label for="fcmTopicBody">Body:</label>
+                    <textarea id="fcmTopicBody" rows="3" placeholder="Notification body"></textarea>
+                </div>
+                <button onclick="sendFCMToTopic()">Send to Topic</button>
+            </div>
+        </div>
+        
+        <div class="container">
+            <h3>Topic Management</h3>
+            <div class="form-group">
+                <label for="subToken">FCM Token:</label>
+                <input type="text" id="subToken" placeholder="Enter FCM token">
+            </div>
+            <div class="form-group">
+                <label for="subTopic">Topic:</label>
+                <input type="text" id="subTopic" placeholder="Topic name">
+            </div>
+            <button onclick="subscribeToTopic()">Subscribe</button>
+            <button onclick="unsubscribeFromTopic()">Unsubscribe</button>
+        </div>
+    </div>
+
+    <!-- Dual Message Tab -->
+    <div id="dual" class="tab-content">
+        <div class="container">
+            <h3>Send to Both FCM and WhatsApp</h3>
+            <div class="form-group">
+                <label for="dualFcmToken">FCM Token:</label>
+                <input type="text" id="dualFcmToken" placeholder="Enter FCM token">
+            </div>
+            <div class="form-group">
+                <label for="dualPhone">WhatsApp Phone:</label>
+                <input type="text" id="dualPhone" placeholder="081234567890">
+            </div>
+            <div class="form-group">
+                <label for="dualTitle">Notification Title:</label>
+                <input type="text" id="dualTitle" placeholder="Important message">
+            </div>
+            <div class="form-group">
+                <label for="dualBody">Notification Body:</label>
+                <textarea id="dualBody" rows="3" placeholder="Your important message"></textarea>
+            </div>
+            <div class="form-group">
+                <label for="dualWhatsappMessage">WhatsApp Message (optional, will use body if empty):</label>
+                <textarea id="dualWhatsappMessage" rows="3" placeholder="Custom WhatsApp message"></textarea>
+            </div>
+            <button onclick="sendDualMessage()">Send Dual Message</button>
+        </div>
+    </div>
+
+    <!-- Status Tab -->
+    <div id="status" class="tab-content">
+        <div class="container">
+            <h3>API Health & Status</h3>
+            <button onclick="checkHealth()">Check API Health</button>
+            <button onclick="getWhatsAppStatus()">WhatsApp Status</button>
+            
+            <div id="statusInfo"></div>
+        </div>
+    </div>
+
+    <!-- Response Display -->
+    <div class="container">
+        <h3>Response</h3>
+        <div id="response" class="response">Response will appear here...</div>
+    </div>
+
+    <script src="client-example.js"></script>
+    <script>
+        let apiClient;
+
+        function updateApiClient() {
+            const apiKey = document.getElementById('apiKey').value;
+            const baseUrl = document.getElementById('baseUrl').value;
+            
+            if (!apiKey) {
+                showError('Please enter API key first');
+                return false;
+            }
+            
+            apiClient = new NotificationApiClient(apiKey, baseUrl);
+            return true;
+        }
+
+        function switchTab(tabName) {
+            // Remove active class from all tabs and contents
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            // Add active class to selected tab and content
+            event.target.classList.add('active');
+            document.getElementById(tabName).classList.add('active');
+        }
+
+        function showResponse(data) {
+            document.getElementById('response').textContent = JSON.stringify(data, null, 2);
+        }
+
+        function showError(message) {
+            document.getElementById('response').innerHTML = `<div class="error">${message}</div>`;
+        }
+
+        function showSuccess(message) {
+            document.getElementById('response').innerHTML = `<div class="success">${message}</div>`;
+        }
+
+        // WhatsApp Functions
+        async function initializeWhatsApp() {
+            if (!updateApiClient()) return;
+            
+            try {
+                const result = await apiClient.initializeWhatsApp();
+                showResponse(result);
+            } catch (error) {
+                showError(error.message);
+            }
+        }
+
+        async function getWhatsAppStatus() {
+            if (!updateApiClient()) return;
+            
+            try {
+                const result = await apiClient.getWhatsAppStatus();
+                showResponse(result);
+                
+                // Update status info
+                const statusDiv = document.getElementById('statusInfo');
+                if (statusDiv) {
+                    statusDiv.innerHTML = `
+                        <div class="success">
+                            <strong>WhatsApp Status:</strong><br>
+                            Connected: ${result.isConnected ? 'Yes' : 'No'}<br>
+                            Reconnecting: ${result.isReconnecting ? 'Yes' : 'No'}<br>
+                            Has QR: ${result.hasQR ? 'Yes' : 'No'}<br>
+                            Reconnect Attempts: ${result.reconnectAttempts}/${result.maxReconnectAttempts}
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                showError(error.message);
+            }
+        }
+
+        async function reconnectWhatsApp() {
+            if (!updateApiClient()) return;
+            
+            try {
+                const result = await apiClient.reconnectWhatsApp();
+                showResponse(result);
+            } catch (error) {
+                showError(error.message);
+            }
+        }
+
+        async function getQRCode() {
+            if (!updateApiClient()) return;
+            
+            try {
+                const result = await apiClient.getWhatsAppQR();
+                showResponse(result);
+                
+                if (result.qr) {
+                    document.getElementById('qrContainer').innerHTML = `
+                        <div class="success">
+                            <strong>QR Code Text:</strong><br>
+                            <textarea readonly style="width: 100%; height: 100px; font-size: 10px;">${result.qr}</textarea>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                showError(error.message);
+            }
+        }
+
+        async function getQRImage() {
+            if (!updateApiClient()) return;
+            
+            try {
+                const blob = await apiClient.getWhatsAppQRImage();
+                const url = URL.createObjectURL(blob);
+                
+                document.getElementById('qrContainer').innerHTML = `
+                    <div class="success">
+                        <strong>QR Code Image:</strong><br>
+                        <img src="${url}" class="qr-image" alt="WhatsApp QR Code">
+                    </div>
+                `;
+                
+                showSuccess('QR Code image loaded successfully');
+            } catch (error) {
+                showError(error.message);
+            }
+        }
+
+        async function sendWhatsAppMessage() {
+            if (!updateApiClient()) return;
+            
+            const phoneNumber = document.getElementById('waPhone').value;
+            const message = document.getElementById('waMessage').value;
+            const imageUrl = document.getElementById('waImageUrl').value;
+            const caption = document.getElementById('waCaption').value;
+            
+            if (!phoneNumber) {
+                showError('Phone number is required');
+                return;
+            }
+            
+            try {
+                const options = {};
+                if (message) options.message = message;
+                if (imageUrl) options.imageUrl = imageUrl;
+                if (caption) options.caption = caption;
+                
+                const result = await apiClient.sendWhatsAppMessage(phoneNumber, options);
+                showResponse(result);
+            } catch (error) {
+                showError(error.message);
+            }
+        }
+
+        async function sendWhatsAppImage() {
+            if (!updateApiClient()) return;
+            
+            const phoneNumber = document.getElementById('waPhone').value;
+            const caption = document.getElementById('waCaption').value;
+            const fileInput = document.getElementById('waImageFile');
+            
+            if (!phoneNumber) {
+                showError('Phone number is required');
+                return;
+            }
+            
+            if (!fileInput.files[0]) {
+                showError('Please select an image file');
+                return;
+            }
+            
+            try {
+                const result = await apiClient.sendWhatsAppImageFile(phoneNumber, fileInput.files[0], caption);
+                showResponse(result);
+            } catch (error) {
+                showError(error.message);
+            }
+        }
+
+        // FCM Functions
+        async function sendFCMToDevice() {
+            if (!updateApiClient()) return;
+            
+            const token = document.getElementById('fcmToken').value;
+            const title = document.getElementById('fcmTitle').value;
+            const body = document.getElementById('fcmBody').value;
+            const dataText = document.getElementById('fcmData').value;
+            
+            if (!token || !title || !body) {
+                showError('Token, title, and body are required');
+                return;
+            }
+            
+            try {
+                let data = null;
+                if (dataText.trim()) {
+                    data = JSON.parse(dataText);
+                }
+                
+                const result = await apiClient.sendToDevice(token, { title, body }, data);
+                showResponse(result);
+            } catch (error) {
+                showError(error.message);
+            }
+        }
+
+        async function sendFCMToTopic() {
+            if (!updateApiClient()) return;
+            
+            const topic = document.getElementById('fcmTopic').value;
+            const title = document.getElementById('fcmTopicTitle').value;
+            const body = document.getElementById('fcmTopicBody').value;
+            
+            if (!topic || !title || !body) {
+                showError('Topic, title, and body are required');
+                return;
+            }
+            
+            try {
+                const result = await apiClient.sendToTopic(topic, { title, body });
+                showResponse(result);
+            } catch (error) {
+                showError(error.message);
+            }
+        }
+
+        async function subscribeToTopic() {
+            if (!updateApiClient()) return;
+            
+            const token = document.getElementById('subToken').value;
+            const topic = document.getElementById('subTopic').value;
+            
+            if (!token || !topic) {
+                showError('Token and topic are required');
+                return;
+            }
+            
+            try {
+                const result = await apiClient.subscribeToTopic(token, topic);
+                showResponse(result);
+            } catch (error) {
+                showError(error.message);
+            }
+        }
+
+        async function unsubscribeFromTopic() {
+            if (!updateApiClient()) return;
+            
+            const token = document.getElementById('subToken').value;
+            const topic = document.getElementById('subTopic').value;
+            
+            if (!token || !topic) {
+                showError('Token and topic are required');
+                return;
+            }
+            
+            try {
+                const result = await apiClient.unsubscribeFromTopic(token, topic);
+                showResponse(result);
+            } catch (error) {
+                showError(error.message);
+            }
+        }
+
+        // Dual Message Functions
+        async function sendDualMessage() {
+            if (!updateApiClient()) return;
+            
+            const fcmToken = document.getElementById('dualFcmToken').value;
+            const phoneNumber = document.getElementById('dualPhone').value;
+            const title = document.getElementById('dualTitle').value;
+            const body = document.getElementById('dualBody').value;
+            const whatsappMessage = document.getElementById('dualWhatsappMessage').value;
+            
+            if (!fcmToken || !phoneNumber || !title || !body) {
+                showError('All fields except WhatsApp message are required');
+                return;
+            }
+            
+            try {
+                const result = await apiClient.sendDualMessage(
+                    fcmToken, 
+                    phoneNumber, 
+                    { title, body }, 
+                    whatsappMessage || null
+                );
+                showResponse(result);
+            } catch (error) {
+                showError(error.message);
+            }
+        }
+
+        // Broadcast Functions
+        async function sendBulkMessages() {
+            if (!updateApiClient()) return;
+            
+            const phoneText = document.getElementById('bulkPhones').value;
+            const message = document.getElementById('bulkMessage').value;
+            
+            if (!phoneText || !message) {
+                showError('Phone numbers and message are required');
+                return;
+            }
+            
+            const phoneNumbers = phoneText.split('\n').filter(phone => phone.trim());
+            
+            try {
+                const result = await apiClient.sendWhatsAppBroadcast(phoneNumbers, message);
+                showResponse(result);
+            } catch (error) {
+                showError(error.message);
+            }
+        }
+
+        async function sendBulkImageMessages() {
+            if (!updateApiClient()) return;
+            
+            const phoneText = document.getElementById('bulkPhones').value;
+            const imageUrl = document.getElementById('bulkImageUrl').value;
+            const caption = document.getElementById('bulkCaption').value;
+            
+            if (!phoneText || !imageUrl) {
+                showError('Phone numbers and image URL are required');
+                return;
+            }
+            
+            const phoneNumbers = phoneText.split('\n').filter(phone => phone.trim());
+            
+            try {
+                const result = await apiClient.sendWhatsAppBroadcastImage(phoneNumbers, imageUrl, caption);
+                showResponse(result);
+            } catch (error) {
+                showError(error.message);
+            }
+        }
+
+        async function createBroadcastList() {
+            if (!updateApiClient()) return;
+            
+            const name = document.getElementById('broadcastName').value;
+            const recipientsText = document.getElementById('broadcastRecipients').value;
+            
+            if (!name || !recipientsText) {
+                showError('Broadcast name and recipients are required');
+                return;
+            }
+            
+            const recipients = recipientsText.split('\n').filter(phone => phone.trim());
+            
+            try {
+                const result = await apiClient.createBroadcastList(name, recipients);
+                showResponse(result);
+                
+                // Auto-fill broadcast ID for convenience
+                if (result.data && result.data.broadcastId) {
+                    document.getElementById('broadcastId').value = result.data.broadcastId;
+                    document.getElementById('manageBroadcastId').value = result.data.broadcastId;
+                }
+            } catch (error) {
+                showError(error.message);
+            }
+        }
+
+        async function getBroadcastLists() {
+            if (!updateApiClient()) return;
+            
+            try {
+                const result = await apiClient.getBroadcastLists();
+                showResponse(result);
+                
+                // Display broadcast lists in a user-friendly way
+                const container = document.getElementById('broadcastListsContainer');
+                if (result.data && result.data.broadcastLists) {
+                    const lists = result.data.broadcastLists;
+                    let html = '<div class="success"><strong>Broadcast Lists:</strong><br>';
+                    
+                    if (lists.length === 0) {
+                        html += 'No broadcast lists found.';
+                    } else {
+                        lists.forEach((list, index) => {
+                            html += `
+                                <div style="margin: 5px 0; padding: 5px; border: 1px solid #ddd; border-radius: 3px;">
+                                    <strong>${list.name}</strong><br>
+                                    ID: <code style="font-size: 10px;">${list.id}</code><br>
+                                    Recipients: ${list.recipients}<br>
+                                    <button onclick="document.getElementById('broadcastId').value='${list.id}'; document.getElementById('manageBroadcastId').value='${list.id}';" style="font-size: 10px; padding: 2px 5px;">Use This List</button>
+                                </div>
+                            `;
+                        });
+                    }
+                    
+                    html += '</div>';
+                    container.innerHTML = html;
+                }
+            } catch (error) {
+                showError(error.message);
+            }
+        }
+
+        async function sendToBroadcastList() {
+            if (!updateApiClient()) return;
+            
+            const broadcastId = document.getElementById('broadcastId').value;
+            const message = document.getElementById('broadcastMessage').value;
+            
+            if (!broadcastId || !message) {
+                showError('Broadcast ID and message are required');
+                return;
+            }
+            
+            try {
+                const result = await apiClient.sendToBroadcastList(broadcastId, message);
+                showResponse(result);
+            } catch (error) {
+                showError(error.message);
+            }
+        }
+
+        async function sendImageToBroadcastList() {
+            if (!updateApiClient()) return;
+            
+            const broadcastId = document.getElementById('broadcastId').value;
+            const imageUrl = document.getElementById('broadcastImageUrl').value;
+            const caption = document.getElementById('broadcastImageCaption').value;
+            
+            if (!broadcastId || !imageUrl) {
+                showError('Broadcast ID and image URL are required');
+                return;
+            }
+            
+            try {
+                const result = await apiClient.sendImageToBroadcastList(broadcastId, imageUrl, caption);
+                showResponse(result);
+            } catch (error) {
+                showError(error.message);
+            }
+        }
+
+        async function updateBroadcastListParticipants() {
+            if (!updateApiClient()) return;
+            
+            const broadcastId = document.getElementById('manageBroadcastId').value;
+            const action = document.getElementById('participantAction').value;
+            const participantsText = document.getElementById('participants').value;
+            
+            if (!broadcastId || !participantsText) {
+                showError('Broadcast ID and participants are required');
+                return;
+            }
+            
+            const participants = participantsText.split('\n').filter(phone => phone.trim());
+            
+            try {
+                const result = await apiClient.updateBroadcastListParticipants(broadcastId, action, participants);
+                showResponse(result);
+            } catch (error) {
+                showError(error.message);
+            }
+        }
+
+        async function deleteBroadcastList() {
+            if (!updateApiClient()) return;
+            
+            const broadcastId = document.getElementById('manageBroadcastId').value;
+            
+            if (!broadcastId) {
+                showError('Broadcast ID is required');
+                return;
+            }
+            
+            if (!confirm('Are you sure you want to delete this broadcast list?')) {
+                return;
+            }
+            
+            try {
+                const result = await apiClient.deleteBroadcastList(broadcastId);
+                showResponse(result);
+                
+                // Clear the inputs
+                document.getElementById('manageBroadcastId').value = '';
+                document.getElementById('broadcastId').value = '';
+            } catch (error) {
+                showError(error.message);
+            }
+        }
+
+        // Status Functions
+        async function checkHealth() {
+            if (!updateApiClient()) return;
+            
+            try {
+                const result = await apiClient.healthCheck();
+                showResponse(result);
+            } catch (error) {
+                showError(error.message);
+            }
+        }
+    </script>
+</body>
+</html>

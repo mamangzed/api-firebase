@@ -223,13 +223,139 @@
           }
         }
       }
+    },
+    "/send-dual-message": {
+      "post": {
+        "summary": "Kirim pesan ke FCM dan WhatsApp",
+        "description": "Mengirim pesan secara bersamaan ke Firebase Cloud Messaging dan WhatsApp",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SendDualMessageRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Pesan berhasil dikirim ke setidaknya satu platform",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SendDualMessageResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Request tidak valid",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/whatsapp/initialize": {
+      "post": {
+        "summary": "Initialize WhatsApp connection",
+        "description": "Memulai koneksi WhatsApp dan menghasilkan QR code",
+        "responses": {
+          "200": {
+            "description": "WhatsApp initialization berhasil dimulai",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "WhatsApp initialization started. Check console for QR code."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Gagal menginisialisasi WhatsApp",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/whatsapp/status": {
+      "get": {
+        "summary": "Get WhatsApp connection status",
+        "description": "Mendapatkan status koneksi WhatsApp",
+        "responses": {
+          "200": {
+            "description": "Status WhatsApp berhasil didapat",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "isConnected": {
+                          "type": "boolean",
+                          "example": true
+                        },
+                        "hasSocket": {
+                          "type": "boolean",
+                          "example": true
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
     "schemas": {
       "Notification": {
         "type": "object",
-        "required": ["title", "body"],
+        "required": [
+          "title",
+          "body"
+        ],
         "properties": {
           "title": {
             "type": "string",
@@ -253,7 +379,10 @@
       },
       "SendToDeviceRequest": {
         "type": "object",
-        "required": ["token", "notification"],
+        "required": [
+          "token",
+          "notification"
+        ],
         "properties": {
           "token": {
             "type": "string",
@@ -278,7 +407,10 @@
       },
       "SendToMultipleDevicesRequest": {
         "type": "object",
-        "required": ["tokens", "notification"],
+        "required": [
+          "tokens",
+          "notification"
+        ],
         "properties": {
           "tokens": {
             "type": "array",
@@ -288,7 +420,11 @@
             "minItems": 1,
             "maxItems": 500,
             "description": "Array FCM tokens (maksimal 500)",
-            "example": ["token1", "token2", "token3"]
+            "example": [
+              "token1",
+              "token2",
+              "token3"
+            ]
           },
           "notification": {
             "$ref": "#/components/schemas/Notification"
@@ -304,7 +440,10 @@
       },
       "SendToTopicRequest": {
         "type": "object",
-        "required": ["topic", "notification"],
+        "required": [
+          "topic",
+          "notification"
+        ],
         "properties": {
           "topic": {
             "type": "string",
@@ -326,7 +465,10 @@
       },
       "TopicSubscriptionRequest": {
         "type": "object",
-        "required": ["tokens", "topic"],
+        "required": [
+          "tokens",
+          "topic"
+        ],
         "properties": {
           "tokens": {
             "oneOf": [
@@ -343,7 +485,10 @@
               }
             ],
             "description": "FCM token atau array tokens",
-            "example": ["token1", "token2"]
+            "example": [
+              "token1",
+              "token2"
+            ]
           },
           "topic": {
             "type": "string",

@@ -1,6 +1,6 @@
-# Firebase Notification API
+# Firebase + WhatsApp Notification API
 
-REST API untuk mengirimkan notifikasi push menggunakan Firebase Cloud Messaging (FCM).
+REST API untuk mengirimkan notifikasi push menggunakan Firebase Cloud Messaging (FCM) dan WhatsApp dengan keamanan API Key.
 
 ## 📋 Daftar Isi
 
@@ -8,6 +8,7 @@ REST API untuk mengirimkan notifikasi push menggunakan Firebase Cloud Messaging 
 - [Prerequisites](#prerequisites)
 - [Instalasi](#instalasi)
 - [Konfigurasi](#konfigurasi)
+- [Keamanan API](#keamanan-api)
 - [Menjalankan Aplikasi](#menjalankan-aplikasi)
 - [API Endpoints](#api-endpoints)
 - [Contoh Penggunaan](#contoh-penggunaan)
@@ -17,10 +18,19 @@ REST API untuk mengirimkan notifikasi push menggunakan Firebase Cloud Messaging 
 
 ## ✨ Fitur
 
-- ✅ Mengirim notifikasi push ke satu perangkat
-- ✅ Mengirim notifikasi push ke beberapa perangkat sekaligus
-- ✅ Mengirim notifikasi push ke topic
+- ✅ Mengirim notifikasi push ke satu perangkat (FCM)
+- ✅ Mengirim notifikasi push ke beberapa perangkat sekaligus (FCM)
+- ✅ Mengirim notifikasi push ke topic (FCM)
 - ✅ Subscribe/Unsubscribe perangkat ke/dari topic
+- ✅ **Integrasi WhatsApp messaging dengan Baileys**
+- ✅ **Dual messaging (FCM + WhatsApp)**
+- ✅ **WhatsApp QR code untuk setup**
+- ✅ **WhatsApp auto-reconnect**
+- ✅ **Image/media sharing via WhatsApp**
+- ✅ **WhatsApp Broadcast List (True Broadcast)**
+- ✅ **WhatsApp Bulk Messaging**
+- ✅ **API Key authentication**
+- ✅ **Domain restriction**
 - ✅ Validasi input dengan Joi
 - ✅ Rate limiting untuk mencegah spam
 - ✅ Error handling yang komprehensif
@@ -36,6 +46,7 @@ REST API untuk mengirimkan notifikasi push menggunakan Firebase Cloud Messaging 
 - npm atau yarn
 - Firebase project dengan Cloud Messaging enabled
 - Firebase service account key
+- WhatsApp account (untuk scanning QR code)
 
 ## 📦 Instalasi
 
@@ -50,7 +61,7 @@ npm install
 
 ### 1. Environment Variables
 
-Salin file `.env` dan sesuaikan konfigurasi:
+Salin file `.env.example` ke `.env` dan sesuaikan konfigurasi:
 
 ```env
 # Firebase Service Account Key
@@ -59,6 +70,17 @@ FIREBASE_SERVICE_ACCOUNT_KEY_PATH=./firebase-service-account.json
 # Server Configuration
 PORT=3000
 NODE_ENV=development
+
+# API Security Configuration
+API_KEY_1=your-super-secret-api-key-here-12345
+API_KEY_2=another-secret-api-key-67890
+API_KEY_3=third-secret-api-key-abcdef
+
+# Allowed domains for API access
+ALLOWED_DOMAIN_1=https://yourdomain.com
+ALLOWED_DOMAIN_2=https://www.yourdomain.com
+ALLOWED_DOMAIN_3=https://localhost:3000
+ALLOWED_DOMAIN_4=http://localhost:3000
 
 # Rate Limiting
 RATE_LIMIT_WINDOW_MS=900000
@@ -79,24 +101,68 @@ ALLOWED_ORIGINS=http://localhost:3000,http://localhost:3001
 ### 3. Struktur File
 
 ```
-firebase-notification-api/
+api-firebase/
 ├── controllers/
 │   └── notificationController.js
 ├── middleware/
 │   ├── errorHandler.js
-│   └── rateLimiter.js
+│   ├── rateLimiter.js
+│   ├── apiKeyAuth.js
+│   └── upload.js
 ├── routes/
 │   └── notificationRoutes.js
 ├── services/
-│   └── firebaseService.js
+│   ├── firebaseService.js
+│   ├── whatsappService.js
+│   └── db.js
 ├── validators/
 │   └── notificationValidator.js
+├── docs/
+│   ├── API_AUTHENTICATION.md
+│   └── ...
+├── examples/
+│   ├── client-example.js
+│   └── test-interface.html
 ├── .env
+├── .env.example
 ├── .gitignore
 ├── index.js
 ├── package.json
 └── firebase-service-account.json
 ```
+
+## 🔐 Keamanan API
+
+API ini dilindungi dengan sistem keamanan berlapis:
+
+### 1. API Key Authentication
+Semua endpoint dilindungi memerlukan header `X-API-Key`:
+
+```http
+X-API-Key: your-secret-api-key
+```
+
+### 2. Domain Restriction
+Hanya domain yang terdaftar di `ALLOWED_DOMAINS` yang dapat mengakses fully protected endpoints.
+
+### 3. Rate Limiting
+- 100 requests per 15 menit per API key
+- Rate limit berdasarkan API key, bukan IP
+
+### 4. Security Levels
+
+**Public (Tanpa Auth):**
+- `GET /api/health`
+
+**API Key Only:**
+- WhatsApp management endpoints (`/whatsapp/status`, `/whatsapp/qr`, etc.)
+
+**Fully Protected (API Key + Domain + Rate Limit):**
+- FCM endpoints (`/send-to-device`, `/send-to-topic`, etc.)
+- WhatsApp messaging endpoints (`/whatsapp/send-message`, etc.)
+- Dual messaging endpoints (`/send-dual-message`)
+
+Baca dokumentasi lengkap di [API_AUTHENTICATION.md](./docs/API_AUTHENTICATION.md)
 
 ## 🚀 Menjalankan Aplikasi
 
