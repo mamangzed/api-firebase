@@ -30,6 +30,7 @@ router.post('/whatsapp/send-message', protectApi, notificationController.sendWha
 router.post('/whatsapp/send', protectApi, notificationController.sendWhatsAppMessage);
 router.post('/whatsapp/send-image', protectApi, upload.single('image'), notificationController.sendWhatsAppImage);
 router.post('/whatsapp/send-image-url', protectApi, notificationController.sendWhatsAppImageFromUrl);
+router.post('/whatsapp/send-document-url', protectApi, notificationController.sendWhatsAppDocumentFromUrl);
 
 // WhatsApp broadcast endpoints (bulk messaging) - fully protected
 router.post('/whatsapp/broadcast', protectApi, notificationController.sendWhatsAppBroadcast);

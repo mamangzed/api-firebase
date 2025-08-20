@@ -451,6 +451,74 @@ class WhatsAppService {
         }
     }
 
+    async sendDocumentFromUrl(phoneNumberOrJID, documentUrl, caption = '', fileName = '') {
+        await this.ensureConnection();
+
+        try {
+            const jid = this.formatPhoneNumberOrJID(phoneNumberOrJID);
+
+            // Extract filename from URL if not provided
+            if (!fileName) {
+                try {
+                    const url = new URL(documentUrl);
+                    fileName = path.basename(url.pathname) || 'document.pdf';
+                } catch (urlError) {
+                    fileName = 'document.pdf';
+                }
+            }
+
+            // Prepare message content
+            const messageContent = {
+                document: { url: documentUrl },
+                fileName: fileName,
+                caption: caption
+            };
+            
+            // For broadcast lists, send directly without additional options
+            if (jid.includes('@broadcast')) {
+                console.log('Sending document to broadcast list (no additional options):', jid);
+                const result = await this.sock.sendMessage(jid, messageContent);
+                
+                console.log('Document message sent successfully to broadcast list:', jid);
+                console.log('Message ID:', result.key.id);
+                
+                return {
+                    success: true,
+                    messageId: result.key.id,
+                    to: jid,
+                    originalInput: phoneNumberOrJID,
+                    fileName: fileName,
+                    timestamp: new Date().toISOString()
+                };
+            } else {
+                // Regular document message to individual or group
+                const result = await this.sock.sendMessage(jid, messageContent);
+                
+                console.log('Document message sent successfully to:', jid);
+                console.log('Message ID:', result.key.id);
+                
+                return {
+                    success: true,
+                    messageId: result.key.id,
+                    to: jid,
+                    originalInput: phoneNumberOrJID,
+                    fileName: fileName,
+                    timestamp: new Date().toISOString()
+                };
+            }
+
+        } catch (error) {
+            console.error('Error sending document message:', error);
+            
+            // If error is connection related, mark as disconnected
+            if (error.message.includes('Connection') || error.message.includes('socket')) {
+                this.isConnected = false;
+            }
+            
+            throw error;
+        }
+    }
+
     getConnectionStatus() {
         return {
             isConnected: this.isConnected,

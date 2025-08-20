@@ -35,6 +35,7 @@ X-API-Key: your-secret-api-key
 - `POST /api/whatsapp/send` - Text WhatsApp message
 - `POST /api/whatsapp/send-image` - Image WhatsApp message
 - `POST /api/whatsapp/send-image-url` - Image dari URL
+- `POST /api/whatsapp/send-document-url` - Document dari URL
 
 ## Rate Limiting
 - 100 requests per 15 menit per API key
@@ -104,6 +105,27 @@ curl -X POST http://localhost:3000/api/whatsapp/send-message \
     "phoneNumber": "081234567890",
     "imageUrl": "https://example.com/image.jpg",
     "caption": "Check out this image!"
+  }'
+
+# Kirim dokumen WhatsApp dari URL
+curl -X POST http://localhost:3000/api/whatsapp/send-message \
+  -H "Content-Type: application/json" \
+  -H "X-API-Key: your-secret-api-key" \
+  -d '{
+    "phoneNumber": "081234567890",
+    "urlDocument": "https://example.com/document.pdf",
+    "caption": "Here is the document you requested"
+  }'
+
+# Kirim dokumen WhatsApp dengan endpoint khusus
+curl -X POST http://localhost:3000/api/whatsapp/send-document-url \
+  -H "Content-Type: application/json" \
+  -H "X-API-Key: your-secret-api-key" \
+  -d '{
+    "phoneNumber": "081234567890",
+    "urlDocument": "https://example.com/document.pdf",
+    "caption": "Here is the document you requested",
+    "fileName": "my-document.pdf"
   }'
 ```
 

@@ -667,12 +667,50 @@ class NotificationController {
     }
 
     /**
-     * Universal WhatsApp message sender - supports text only or text with image
+     * Send WhatsApp document message from URL
+     * phoneNumber parameter supports both phone numbers and JIDs
+     */
+    async sendWhatsAppDocumentFromUrl(req, res) {
+        try {
+            const { phoneNumber, urlDocument, caption, fileName } = req.body;
+            
+            if (!phoneNumber || !urlDocument) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'phoneNumber and urlDocument are required'
+                });
+            }
+
+            const result = await getWhatsAppService().sendDocumentFromUrl(
+                phoneNumber, 
+                urlDocument, 
+                caption || '',
+                fileName || ''
+            );
+            
+            res.status(200).json({
+                success: true,
+                message: 'WhatsApp document sent successfully',
+                data: result
+            });
+            
+        } catch (error) {
+            console.error('Error sending WhatsApp document from URL:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Failed to send WhatsApp document',
+                error: error.message
+            });
+        }
+    }
+
+    /**
+     * Universal WhatsApp message sender - supports text only, text with image, or text with document
      * phoneNumber parameter supports both phone numbers and JIDs
      */
     async sendWhatsAppUniversal(req, res) {
         try {
-            const { phoneNumber, message, imageUrl, caption } = req.body;
+            const { phoneNumber, message, imageUrl, urlDocument, caption, fileName } = req.body;
             
             if (!phoneNumber) {
                 return res.status(400).json({
@@ -681,17 +719,45 @@ class NotificationController {
                 });
             }
 
-            if (!message && !imageUrl) {
+            if (!message && !imageUrl && !urlDocument) {
                 return res.status(400).json({
                     success: false,
-                    message: 'Either message or imageUrl is required'
+                    message: 'Either message, imageUrl, or urlDocument is required'
+                });
+            }
+
+            // Validate that only one media type is provided
+            const mediaCount = [imageUrl, urlDocument].filter(Boolean).length;
+            if (mediaCount > 1) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Please provide only one media type: imageUrl OR urlDocument'
                 });
             }
 
             let result;
 
+            // If urlDocument is provided, send document with caption
+            if (urlDocument) {
+                // Use caption if provided, otherwise use message as caption
+                const documentCaption = caption || message || '';
+                
+                result = await getWhatsAppService().sendDocumentFromUrl(
+                    phoneNumber, 
+                    urlDocument, 
+                    documentCaption,
+                    fileName || ''
+                );
+                
+                // If there's additional text message and it's different from caption, send it separately
+                if (message && message !== documentCaption) {
+                    await new Promise(resolve => setTimeout(resolve, 1000)); // Small delay
+                    const textResult = await getWhatsAppService().sendMessage(phoneNumber, message);
+                    result.additionalMessage = textResult;
+                }
+            } 
             // If imageUrl is provided, send image with caption
-            if (imageUrl) {
+            else if (imageUrl) {
                 // Use caption if provided, otherwise use message as caption
                 const imageCaption = caption || message || '';
                 
@@ -712,9 +778,18 @@ class NotificationController {
                 result = await getWhatsAppService().sendMessage(phoneNumber, message);
             }
             
+            let successMessage;
+            if (urlDocument) {
+                successMessage = 'WhatsApp message with document sent successfully';
+            } else if (imageUrl) {
+                successMessage = 'WhatsApp message with image sent successfully';
+            } else {
+                successMessage = 'WhatsApp text message sent successfully';
+            }
+            
             res.status(200).json({
                 success: true,
-                message: imageUrl ? 'WhatsApp message with image sent successfully' : 'WhatsApp text message sent successfully',
+                message: successMessage,
                 data: result
             });
             
